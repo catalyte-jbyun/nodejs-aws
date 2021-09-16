@@ -4,12 +4,14 @@ const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3-transform');
 const sharp = require('sharp');
+const env = require('../config/s3.env.js');
+
 var stream = require('stream');
 
 const s3 = new aws.S3({
-    accessKeyId: 'AKIAZCNGAWKH24ZZXY74',
-    secretAccessKey: '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',
-    region: '',
+    accessKeyId: env.AWS_ACCESS_KEY,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    region: env.REGION,
 });
 
 const upload = multer({
