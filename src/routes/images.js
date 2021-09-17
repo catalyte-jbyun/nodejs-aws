@@ -6,7 +6,7 @@ const multerS3 = require('multer-s3-transform');
 const sharp = require('sharp');
 const env = require('../config/s3.env.js');
 
-var stream = require('stream');
+const stream = require('stream');
 
 const s3 = new aws.S3({
     accessKeyId: env.AWS_ACCESS_KEY,
@@ -25,10 +25,10 @@ const upload = multer({
     },
     storage: multerS3({
         acl: 'public-read',
-        shouldTransform: function (req, file, cb) {
+        shouldTransform: (req, file, cb) => {
             cb(null, /^image/i.test(file.mimetype))
         },
-        key: function (req, file, cb) {
+        key: (req, file, cb) => {
             var filename = file.originalname.replace(path.extname(file.originalname), '@') + Date.now() + path.extname(file.originalname);
             file.originalname = filename;
             cb(null, filename);
@@ -36,26 +36,28 @@ const upload = multer({
         s3,
         contentType: multerS3.AUTO_CONTENT_TYPE,
         bucket: 'aa-images-s3',
-        key: function (req, file, cb) {
+        key: (req, file, cb) => {
             req.file = Date.now() + file.originalname;
             cb(null, req.file);
         },
         transforms: [{
             id: 'original',
-            key: function (req, file, cb) {
+            key: (req, file, cb) => {
+                console.log('test0-1', file);
                 // cb(null, file.originalname);
-                cb(null, 'original');
+                cb(null, 'original-' + file.originalname);
             },
-            transform: function (req, file, cb) {
+            transform: (req, file, cb) => {
                 cb(null, new stream.PassThrough())
             }
         }, {
             id: 'thumbnail',
-            key: function (req, file, cb) {
+            key: (req, file, cb) => {
+                console.log('test0-2', file);
                 // cb(null, 'thumb-' + file.originalname)
-                cb(null, 'thumbnail');
+                cb(null, 'thumbnail-' + file.originalname);
             },
-            transform: function (req, file, cb) {
+            transform: (req, file, cb) => {
                 cb(null, sharp().resize({ width: 200, height: 200, fit: sharp.fit.cover }).png({quality: 80}))
             }
         }]
@@ -71,7 +73,8 @@ router.post('/single', upload.single('file'), (req, res) => {
 router.post('/multiple', upload.array('files'), (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
-    console.log('test1', req.files);
+    console.log('test1', req.body);
+    console.log('test1-2', req.files);
 })
 
 module.exports = router;
